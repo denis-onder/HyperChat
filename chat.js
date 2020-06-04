@@ -5,68 +5,89 @@ import cheet from './es_modules/cheet.js/cheet.js';
 
 let notificationPermission = 'default';
 // Check if the browser supports service workers and make sure it supports the features I'm using
-if ('serviceWorker' in navigator && 'register' in navigator.serviceWorker && 'controller' in navigator.serviceWorker && 'ready' in navigator.serviceWorker) {
+if (
+  'serviceWorker' in navigator &&
+  'register' in navigator.serviceWorker &&
+  'controller' in navigator.serviceWorker &&
+  'ready' in navigator.serviceWorker
+) {
   // If true, the service worker is controlling the site
   if (navigator.serviceWorker.controller) {
     console.log('Service worker is controlling the site.');
     // Add message event listener to get messages from the service worker
-    navigator.serviceWorker.addEventListener('message', function(event) {
+    navigator.serviceWorker.addEventListener('message', function (event) {
       console.log(`Got message from service worker: ${event.data}`);
       if (event.data.startsWith('Notification Quick Reply:')) {
         notificationReplyMessage = event.data;
-        notificationReplyMessage = notificationReplyMessage.replace(/^(Notification Quick Reply\: )/,'');
+        notificationReplyMessage = notificationReplyMessage.replace(
+          /^(Notification Quick Reply\: )/,
+          ''
+        );
         sendMessage(notificationReplyMessage);
         return;
       }
     });
     // Send initial message to service worker
-    navigator.serviceWorker.controller.postMessage('Initial message to service worker.');
-    console.log('Sent message to service worker: Initial message to service worker.')
+    navigator.serviceWorker.controller.postMessage(
+      'Initial message to service worker.'
+    );
+    console.log(
+      'Sent message to service worker: Initial message to service worker.'
+    );
   }
   // Else, the service worker is not controlling the site and needs to be registered
   else {
     // Register the Service Worker
-    navigator.serviceWorker.register('./service-worker.js', {
-      scope: './'
-    }).then(function(registration) {
-      // The service worker registration succeeded, so log it in console
-      console.log('Service worker registration succeeded:', registration);
-      // Add message event listener to get messages from the service worker
-      navigator.serviceWorker.addEventListener('message', function(event) {
-        console.log(`Got message from service worker: ${event.data}`);
-        if (event.data.startsWith('Notification Quick Reply:')) {
-          notificationReplyMessage = event.data;
-          notificationReplyMessage = notificationReplyMessage.replace(/^(Notification Quick Reply\: )/,'');
-          sendMessage(notificationReplyMessage);
-          return;
-        }
+    navigator.serviceWorker
+      .register('./service-worker.js', {
+        scope: './',
+      })
+      .then(function (registration) {
+        // The service worker registration succeeded, so log it in console
+        console.log('Service worker registration succeeded:', registration);
+        // Add message event listener to get messages from the service worker
+        navigator.serviceWorker.addEventListener('message', function (event) {
+          console.log(`Got message from service worker: ${event.data}`);
+          if (event.data.startsWith('Notification Quick Reply:')) {
+            notificationReplyMessage = event.data;
+            notificationReplyMessage = notificationReplyMessage.replace(
+              /^(Notification Quick Reply\: )/,
+              ''
+            );
+            sendMessage(notificationReplyMessage);
+            return;
+          }
+        });
+        // Wait for the service worker to be ready
+        navigator.serviceWorker.ready.then(function (registration) {
+          // Send initial message to service worker
+          registration.active.postMessage('Initial message to service worker.');
+          console.log(
+            'Sent message to service worker: Initial message to service worker.'
+          );
+        });
+      })
+      .catch(function (error) {
+        // The service worker registration failed, so show an error in console
+        console.error('Service worker registration failed:', error);
       });
-      // Wait for the service worker to be ready
-      navigator.serviceWorker.ready.then(function(registration) {
-        // Send initial message to service worker
-        registration.active.postMessage('Initial message to service worker.');
-        console.log('Sent message to service worker: Initial message to service worker.');
-      });
-    }).catch(function(error) {
-      // The service worker registration failed, so show an error in console
-      console.error('Service worker registration failed:', error);
-    });
   }
 
   // Set the notification permission variable to the browser's notification permission state if the browser supports notifications.
   if ('Notification' in window && typeof Notification.permission === 'string') {
     notificationPermission = Notification.permission;
   }
-}
-else {
-  console.log('Service workers are not supported on this browser or browser version.');
+} else {
+  console.log(
+    'Service workers are not supported on this browser or browser version.'
+  );
 }
 
 // eslint-disable-next-line no-unused-vars
 function notificationPermissionPrompt() {
   if ('Notification' in window && typeof Notification.permission === 'string') {
-    Notification.requestPermission(function(result) {
-      return notificationPermission = result;
+    Notification.requestPermission(function (result) {
+      return (notificationPermission = result);
     });
   }
 } // Used to show a permission prompt to grant access to notifications
@@ -74,9 +95,18 @@ function notificationPermissionPrompt() {
 let fadeTime = 150; // In ms
 let typingTimerLength = 1000; // In ms
 let colors = [
-  '#e21400', '#91580f', '#f8a700', '#f78b00',
-  '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
-  '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
+  '#e21400',
+  '#91580f',
+  '#f8a700',
+  '#f78b00',
+  '#58dc00',
+  '#287b00',
+  '#a8f07a',
+  '#4ae8c4',
+  '#3b88eb',
+  '#3824aa',
+  '#a700ff',
+  '#d300e7',
 ]; // Colors for usernames
 
 // Initialize variables
@@ -116,33 +146,39 @@ cheet(sequences.primary);
 
 cheet.done(function (seq) {
   if (seq === sequences.primary) {
-    cheatActivated = true
+    cheatActivated = true;
   }
 });
 
 function isElectron() {
-  if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
+  if (
+    typeof navigator === 'object' &&
+    typeof navigator.userAgent === 'string' &&
+    navigator.userAgent.indexOf('Electron') >= 0
+  ) {
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 }
 
 if (isElectron()) {
   socket = io('https://hyperchat.cf');
-}
-else {
+} else {
   socket = io();
 }
 
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+if (
+  window.matchMedia &&
+  window.matchMedia('(prefers-color-scheme: dark)').matches
+) {
   systemTheme = 'dark';
-}
-else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+} else if (
+  window.matchMedia &&
+  window.matchMedia('(prefers-color-scheme: light)').matches
+) {
   systemTheme = 'light';
-}
-else {
+} else {
   systemTheme = 'light';
 }
 
@@ -162,15 +198,20 @@ const changeTheme = (theme) => {
   grab('body').classList.add(theme);
   grab('body').classList.remove(inverse);
   grab('#settingsIconInChat').src = `./assets/${iconPrefix}SettingsIcon.png`;
-  grab('#settingsIconInSettings').src = `./assets/${iconPrefix}SettingsIcon.png`;
+  grab(
+    '#settingsIconInSettings'
+  ).src = `./assets/${iconPrefix}SettingsIcon.png`;
   grab('#notificationBell').src = `./assets/${iconPrefix}NotificationBell.png`;
-  grab('#settingsTopBar').classList.remove(`navbar-${inverse}`, `bg-${inverse}`);
+  grab('#settingsTopBar').classList.remove(
+    `navbar-${inverse}`,
+    `bg-${inverse}`
+  );
   grab('#settingsTopBar').classList.add(`navbar-${theme}`, `bg-${theme}`);
   grab('#Message-Box').classList.remove(`${inverse}ThemeScrollbar`);
   grab('#Message-Box').classList.add(`${theme}ThemeScrollbar`);
   grab('#messages').classList.remove(`${inverse}ThemeScrollbar`);
   grab('#messages').classList.add(`${theme}ThemeScrollbar`);
-}
+};
 
 if (store('theme') == null) {
   changeTheme(systemTheme); // If the theme is not stored, set the theme to the user's system theme.
@@ -196,7 +237,9 @@ grab('#darkThemeRadio').addEventListener('change', function (event) {
 
 // If the server list area state is not set, set it to the original state which depends if the user is on desktop or mobile
 if (grab('#Server-List-Area').data('state') == undefined) {
-  const originalState = grab('#Server-List-Area').css('--original-state').trim();
+  const originalState = grab('#Server-List-Area')
+    .css('--original-state')
+    .trim();
   grab('#Server-List-Area').data('state', originalState);
 }
 
@@ -215,32 +258,36 @@ function onVisibilityChange(callback) {
 
   function focused() {
     if (!visible) {
-      callback(visible = true);
+      callback((visible = true));
     }
   }
 
   function unfocused() {
     if (visible) {
-      callback(visible = false);
+      callback((visible = false));
     }
   }
 
   // Standards:
   if ('hidden' in document) {
-    document.addEventListener('visibilitychange',
-      function() {(document.hidden ? unfocused : focused)()});
+    document.addEventListener('visibilitychange', function () {
+      (document.hidden ? unfocused : focused)();
+    });
   }
   if ('mozHidden' in document) {
-    document.addEventListener('mozvisibilitychange',
-      function() {(document.mozHidden ? unfocused : focused)()});
+    document.addEventListener('mozvisibilitychange', function () {
+      (document.mozHidden ? unfocused : focused)();
+    });
   }
   if ('webkitHidden' in document) {
-    document.addEventListener('webkitvisibilitychange',
-      function() {(document.webkitHidden ? unfocused : focused)()});
+    document.addEventListener('webkitvisibilitychange', function () {
+      (document.webkitHidden ? unfocused : focused)();
+    });
   }
   if ('msHidden' in document) {
-    document.addEventListener('msvisibilitychange',
-      function() {(document.msHidden ? unfocused : focused)()});
+    document.addEventListener('msvisibilitychange', function () {
+      (document.msHidden ? unfocused : focused)();
+    });
   }
   // IE 9 and lower:
   if ('onfocusin' in document) {
@@ -252,7 +299,7 @@ function onVisibilityChange(callback) {
   window.onpagehide = window.onblur = unfocused;
 }
 
-onVisibilityChange(function(visible) {
+onVisibilityChange(function (visible) {
   pageVisible = visible;
 });
 
@@ -271,8 +318,7 @@ function showReconnectingScreen() {
   if (loggedIn) {
     grab('#Chat-Screen').fadeOut();
     grab('#reconnectingScreen').fadeIn();
-  }
-  else {
+  } else {
     grab('#loginScreen').fadeOut();
     grab('#reconnectingScreen').fadeIn();
   }
@@ -282,8 +328,7 @@ function hideReconnectingScreen() {
   if (loggedIn) {
     grab('#reconnectingScreen').fadeOut();
     grab('#Chat-Screen').fadeIn();
-  }
-  else {
+  } else {
     grab('#reconnectingScreen').fadeOut();
     grab('#loginScreen').fadeIn();
   }
@@ -296,8 +341,7 @@ function toggleServerList() {
     grab('#Server-List-Area').css('transform', 'translateX(0%)');
     grab('#Server-List-Area').data('state', 'shown');
     return 'nowShown';
-  }
-  else {
+  } else {
     grab('#Server-List-Area').css('opacity', '0');
     grab('#Server-List-Area').css('transform', 'translateX(-100%)');
     grab('#Server-List-Area').data('state', 'hidden');
@@ -312,8 +356,7 @@ function toggleUserList() {
     grab('#User-List').css('transform', 'translateX(0%)');
     grab('#User-List').data('state', 'shown');
     return 'nowShown';
-  }
-  else {
+  } else {
     grab('#User-List').css('opacity', '0');
     grab('#User-List').css('transform', 'translateX(100%)');
     grab('#User-List').data('state', 'hidden');
@@ -322,7 +365,7 @@ function toggleUserList() {
 }
 
 function arrayRemove(array, value) {
-  return array.filter(function(ele) {
+  return array.filter(function (ele) {
     return ele != value;
   });
 }
@@ -334,7 +377,7 @@ const submitLoginInfo = () => {
   server = cleanInput(grab('#serverInput').value.trim());
   // Tell the server your username, password, and server
   socket.emit('login', { username, password, server });
-}
+};
 
 socket.on('login authorized', () => {
   if (initialLogin) {
@@ -342,10 +385,10 @@ socket.on('login authorized', () => {
     grab('#Chat-Screen').fadeIn();
     currentInput = grab('#Message-Box');
     connected = true;
-    loggedIn = true
+    loggedIn = true;
     // Display the welcome message
     log(`Welcome to ${server}!`, {
-      prepend: true
+      prepend: true,
     });
   }
 });
@@ -373,8 +416,8 @@ socket.on('server list', (data) => {
   serverListContents = data.serverListContents;
   syncServerList(serverListContents);
   // Add an event listener go to the server when a server icon in the server list is clicked
-  grabAll('.serverIconInServerList').forEach(function(element) {
-    element.addEventListener('click', function() {
+  grabAll('.serverIconInServerList').forEach(function (element) {
+    element.addEventListener('click', function () {
       const server = element.dataset['servername'];
       socket.emit('switch server', server);
       // const serverName = serverListContents.find(server => server.ServerName === 'ServerNameHere').PropertyOfObjectToGet;
@@ -401,26 +444,36 @@ socket.on('unflip', () => {
 });
 
 socket.on('stupidify', () => {
-  (function(){
-    let text = 'When I looked in the mirror, the reflection showed Joe Mama. Then the mirror screamed, and shattered. '
-    Array.prototype.slice.call(document.querySelectorAll('input,textarea')).map(function (element) {
-      element.onkeypress=function(evt){
-        let charCode = typeof evt.which == 'number' ? evt.which : evt.keyCode;
-        if (charCode && charCode > 31) {
-          let start = this.selectionStart, end = this.selectionEnd;
-          this.value = this.value.slice(0, start) + text[start % text.length] + this.value.slice(end);
-          this.selectionStart = this.selectionEnd = start + 1;
-        }
-        return false;
-      }
-    });
-  }());
+  (function () {
+    let text =
+      'When I looked in the mirror, the reflection showed Joe Mama. Then the mirror screamed, and shattered. ';
+    Array.prototype.slice
+      .call(document.querySelectorAll('input,textarea'))
+      .map(function (element) {
+        element.onkeypress = function (evt) {
+          let charCode = typeof evt.which == 'number' ? evt.which : evt.keyCode;
+          if (charCode && charCode > 31) {
+            let start = this.selectionStart,
+              end = this.selectionEnd;
+            this.value =
+              this.value.slice(0, start) +
+              text[start % text.length] +
+              this.value.slice(end);
+            this.selectionStart = this.selectionEnd = start + 1;
+          }
+          return false;
+        };
+      });
+  })();
 });
 
 socket.on('smash', () => {
-  Array.prototype.slice.call(document.querySelectorAll('div,p,span,img,a,body')).map(function (element) {
-    element.style['transform'] = 'rotate(' + (Math.floor(Math.random() * 10) - 1) + 'deg)';
-  });
+  Array.prototype.slice
+    .call(document.querySelectorAll('div,p,span,img,a,body'))
+    .map(function (element) {
+      element.style['transform'] =
+        'rotate(' + (Math.floor(Math.random() * 10) - 1) + 'deg)';
+    });
 });
 
 socket.on('kick', () => {
@@ -445,23 +498,25 @@ const syncServerList = (serverListContents) => {
       serverIconForServerList.title = serverListContents[server].ServerName;
       serverIconForServerList.alt = serverListContents[server].ServerName;
       serverIconForServerList.draggable = 'false';
-      serverIconForServerList.data('servername', serverListContents[server].ServerName);
+      serverIconForServerList.data(
+        'servername',
+        serverListContents[server].ServerName
+      );
       serverForServerList.appendChild(serverIconForServerList);
       grab('#Server-List').appendChild(serverForServerList);
     }
   }
-}
+};
 
 // Sends a chat message
 const sendMessage = (message) => {
   if (message && connected && !cheatActivated) {
     grab('#Message-Box').value = '';
     socket.emit('new message', message);
-  }
-  else if (message && connected && cheatActivated) {
+  } else if (message && connected && cheatActivated) {
     socket.emit('new message', message);
   }
-}
+};
 
 // Sync the contents of the user list.
 const syncUserList = (userListContents) => {
@@ -473,38 +528,40 @@ const syncUserList = (userListContents) => {
       grab('#userListContents').appendChild(userToAddToUserList);
     }
   }
-}
+};
 
 // Log a message
 const log = (message, options) => {
   let messageElement = newElement('li');
-  messageElement.classList.add('log')
+  messageElement.classList.add('log');
   messageElement.textContent = message;
   addMessageElement(messageElement, options);
-}
+};
 
 // Add a user to the user list.
 const addToUserList = (user) => {
   let userToAddToUserList = newElement('li');
-  userToAddToUserList.classList.add('userInUserList')
+  userToAddToUserList.classList.add('userInUserList');
   userToAddToUserList.textContent = user;
   grab('#userListContents').appendChild(userToAddToUserList);
-}
+};
 
 // Remove a user from the user list.
 const removeFromUserList = (user) => {
-  for (let userInUserList of document.querySelectorAll('#User-List .userInUserList')) {
+  for (let userInUserList of document.querySelectorAll(
+    '#User-List .userInUserList'
+  )) {
     if (userInUserList.textContent === user) {
       userInUserList.remove();
       break;
     }
   }
-}
+};
 
 // Adds the visual chat message to the message list
 const addChatMessage = (data) => {
   let usernameSpan = newElement('span');
-  usernameSpan.classList.add('username')
+  usernameSpan.classList.add('username');
   usernameSpan.textContent = data.username;
   // If the message is special, set a special username color
   if (data.special) {
@@ -520,7 +577,7 @@ const addChatMessage = (data) => {
   if (data.special) {
     userBadge = newElement('span');
     userBadge.classList.add('userBadge');
-    userBadge.css('background-color', data.badgeColor || '#7289da')
+    userBadge.css('background-color', data.badgeColor || '#7289da');
     userBadge.textContent = data.type;
   }
 
@@ -542,14 +599,17 @@ const addChatMessage = (data) => {
   }
 
   addMessageElement(messageItem);
-}
+};
 
 // Sync the user typing message
 const syncUsersTyping = (usersTypingArray) => {
   const usersTypingMax = 3;
-  const listFormatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }); // This is for formatting the users out in a string list seperated by commas
+  const listFormatter = new Intl.ListFormat('en', {
+    style: 'long',
+    type: 'conjunction',
+  }); // This is for formatting the users out in a string list seperated by commas
 
-  function formatUsersTyping (usersTypingArray) {
+  function formatUsersTyping(usersTypingArray) {
     if (!usersTypingArray || !usersTypingArray.length) {
       return '';
     }
@@ -559,7 +619,7 @@ const syncUsersTyping = (usersTypingArray) => {
       usersTyping.splice(
         usersTypingMax - 1,
         usersTyping.length,
-        `${usersTypingArray.length - (usersTypingMax - 1)} others`,
+        `${usersTypingArray.length - (usersTypingMax - 1)} others`
       ); // Make a new array usersTyping with 'x others' in replacement of users after the 3rd user
     }
     const usersString = listFormatter.format(usersTyping); // Call the function format and formats the users typing string
@@ -575,11 +635,10 @@ const syncUsersTyping = (usersTypingArray) => {
     element.classList.add('typing');
     element.textContent = usersTypingText;
     grab('#User-Is-Typing-Area').innerHTML = element.outerHTML;
-  }
-  else {
+  } else {
     grab('#User-Is-Typing-Area').innerHTML = '';
   }
-}
+};
 
 // Function to clear the user list
 function clearUserList() {
@@ -619,20 +678,19 @@ const addMessageElement = (element, options) => {
 
   if (options.prepend) {
     grab('#messages').prepend(element);
-  }
-  else {
+  } else {
     grab('#messages').append(element);
   }
 
   grab('#messages').scrollTop = grab('#messages').scrollHeight;
-}
+};
 
 // Prevents input from having injected markup
 const cleanInput = (input) => {
   let tmp = newElement('div');
   tmp.innerHTML = input;
   return tmp.textContent || tmp.innerText || '';
-}
+};
 
 // Updates the typing event
 const updateTyping = () => {
@@ -641,10 +699,10 @@ const updateTyping = () => {
       typing = true;
       socket.emit('typing');
     }
-    lastTypingTime = (new Date()).getTime();
+    lastTypingTime = new Date().getTime();
 
     setTimeout(() => {
-      let typingTimer = (new Date()).getTime();
+      let typingTimer = new Date().getTime();
       let timeDiff = typingTimer - lastTypingTime;
       if (timeDiff >= typingTimerLength && typing) {
         socket.emit('stop typing');
@@ -652,19 +710,19 @@ const updateTyping = () => {
       }
     }, typingTimerLength);
   }
-}
+};
 
 // Gets the color of a username through our hash function
 const getUsernameColor = (username) => {
   // Compute hash code
   let hash = 7;
   for (let i = 0; i < username.length; i++) {
-     hash = username.charCodeAt(i) + (hash << 5) - hash;
+    hash = username.charCodeAt(i) + (hash << 5) - hash;
   }
   // Calculate color
   let index = Math.abs(hash % colors.length);
   return colors[index];
-}
+};
 
 // Keyboard events
 
@@ -674,8 +732,8 @@ grab('#Message-Box').addEventListener('input', function (event) {
 });
 
 grab('#Message-Box').addEventListener('keydown', function (event) {
-  if (event.key=='Enter' && !event.shiftKey) {
-    event.preventDefault()
+  if (event.key == 'Enter' && !event.shiftKey) {
+    event.preventDefault();
     sendMessage(grab('#Message-Box').value);
     socket.emit('stop typing');
     typing = false;
@@ -683,11 +741,13 @@ grab('#Message-Box').addEventListener('keydown', function (event) {
   }
 });
 
-
 document.addEventListener('keydown', (event) => {
   if (loggedIn) {
     // Auto-focus the current input when a key is typed
-    if (!(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) && currentInput) {
+    if (
+      !(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) &&
+      currentInput
+    ) {
       currentInput.focus();
     }
   }
@@ -705,12 +765,14 @@ grab('#usernameInput').addEventListener('click', () => {
 });
 
 // Set focus to password input when clicked
-grab('#passwordInput').addEventListener('click',() => {
+grab('#passwordInput').addEventListener('click', () => {
   currentInput = grab('#passwordInput');
 });
 
 // Focus input when clicking on the message input's border
-grab('#Message-Box').addEventListener('click', () => {grab('#Message-Box').focus()});
+grab('#Message-Box').addEventListener('click', () => {
+  grab('#Message-Box').focus();
+});
 
 // Go to the settings page when the settings icon on the chat page is clicked
 grab('#settingsIconInChat').addEventListener('click', showSettingsScreen);
@@ -719,7 +781,10 @@ grab('#settingsIconInChat').addEventListener('click', showSettingsScreen);
 grab('#settingsIconInSettings').addEventListener('click', hideSettingsScreen);
 
 // Show the notification permission prompt when the notification bell is clicked
-grab('#notificationBell').addEventListener('click', notificationPermissionPrompt);
+grab('#notificationBell').addEventListener(
+  'click',
+  notificationPermissionPrompt
+);
 
 // Toggle server list slide-out drawer when the server list icon is tapped on mobile
 grab('#serverListIconWrapper').addEventListener('click', toggleServerList);
@@ -734,26 +799,35 @@ socket.on('new message', (data) => {
   if (data.username !== username) {
     addChatMessage(data);
     chatMessageSound.play();
-    if (navigator.serviceWorker.controller && notificationPermission === 'granted' && data.message.includes(`@${username}`)) { // Make sure the service worker is controlling the site, we have the permission to send notifications, and the user was mentioned
+    if (
+      navigator.serviceWorker.controller &&
+      notificationPermission === 'granted' &&
+      data.message.includes(`@${username}`)
+    ) {
+      // Make sure the service worker is controlling the site, we have the permission to send notifications, and the user was mentioned
       // Convert html to markdown using AgentMarkdown for the notification
       // const notificationMessage = turndown(data.message);
       // No html to markdown converter yet because of issues
       const notificationMessage = data.message;
-      navigator.serviceWorker.ready.then(function(registration) {
+      navigator.serviceWorker.ready.then(function (registration) {
         registration.showNotification(data.username, {
           body: notificationMessage,
           icon: './assets/favicon.ico',
           vibrate: [200, 100, 200, 100, 200, 100, 200],
           tag: 'pingNotification',
           actions: [
-            {action: 'reply', title: 'Reply', type: 'text', placeholder: 'Type your reply...'},
-            {action: 'close', title: 'Close notification'}
-          ]
+            {
+              action: 'reply',
+              title: 'Reply',
+              type: 'text',
+              placeholder: 'Type your reply...',
+            },
+            { action: 'close', title: 'Close notification' },
+          ],
         });
       });
     }
-  }
-  else {
+  } else {
     addChatMessage(data);
   }
 });
@@ -790,7 +864,7 @@ socket.on('server switch success', (data) => {
   clearMessages();
   // Display the welcome message
   log(`Welcome to ${server}!`, {
-    prepend: true
+    prepend: true,
   });
 });
 
@@ -814,4 +888,10 @@ socket.on('reconnect', () => {
 
 socket.on('reconnect_error', () => {
   log('Attempt to reconnect has failed');
+});
+
+socket.on('initial message list', (messages) => {
+  messages.forEach((message) => {
+    log(message);
+  });
 });

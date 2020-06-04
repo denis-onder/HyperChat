@@ -71,7 +71,7 @@ function handleMessage({ io, socket, message }) {
         user: socket.username,
         message: finalMessage,
         special: true,
-        type: specialUser.type,
+        type: specialUser.Type,
         usernameColor: specialUser.UsernameColor,
         badgeColor: specialUser.BadgeColor,
       },
@@ -83,7 +83,7 @@ function handleMessage({ io, socket, message }) {
           special: msg.special,
           type: msg.type,
           usernameColor: msg.usernameColor,
-          badgeColor: msg.BadgeColor,
+          badgeColor: msg.badgeColor,
         });
       }
     );

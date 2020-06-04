@@ -78,6 +78,7 @@ const messageSchema = new Schema({
   special: { type: Boolean, required: false },
   usernameColor: { type: String, required: false },
   badgeColor: { type: String, required: false },
+  timestamp: { type: Number, default: Date.now() },
 });
 
 // Use the user credentials Schema to make a Mongoose Model as a shared global variable

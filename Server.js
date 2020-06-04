@@ -1,25 +1,25 @@
 // At the start, import the needed modules
-import fs from 'fs';
-import http2 from 'http2';
-import socketio from 'socket.io';
-import mongoose from 'mongoose';
-import handleRequest from './server/webserver/RequestHandler.js';
-import handleLogin from './server/socket/events/Login.js';
-import handleMessage from './server/socket/events/Message.js';
-import handleTyping from './server/socket/events/Typing.js';
-import handleStopTyping from './server/socket/events/StopTyping.js';
-import handleSwitchServer from './server/socket/events/SwitchServer.js';
-import handleDisconnect from './server/socket/events/Disconnect.js';
+import fs from "fs";
+import http2 from "http2";
+import socketio from "socket.io";
+import mongoose from "mongoose";
+import handleRequest from "./server/webserver/RequestHandler.js";
+import handleLogin from "./server/socket/events/Login.js";
+import handleMessage from "./server/socket/events/Message.js";
+import handleTyping from "./server/socket/events/Typing.js";
+import handleStopTyping from "./server/socket/events/StopTyping.js";
+import handleSwitchServer from "./server/socket/events/SwitchServer.js";
+import handleDisconnect from "./server/socket/events/Disconnect.js";
 
 // Set the process title
-process.title = 'HyperChat';
+process.title = "HyperChat";
 
 // Options for the web server including the TLS Certificate and allowing http1
 const options = {
-  cert: fs.readFileSync('/Users/evere/Servers/Certificates/ECDSA/chain.pem'),
-  key: fs.readFileSync('/Users/evere/Servers/Certificates/ECDSA/key.pem'),
-  allowHTTP1: true
-}
+  cert: fs.readFileSync("/Users/evere/Servers/Certificates/ECDSA/chain.pem"),
+  key: fs.readFileSync("/Users/evere/Servers/Certificates/ECDSA/key.pem"),
+  allowHTTP1: true,
+};
 
 // Use http2 to create a secure http2 web server, handled with handleRequest(),
 // defined as webServer
@@ -45,11 +45,19 @@ global.serverListContents = [];
 global.userMap = new Map();
 
 // Connect to the MongoDB database using Mongoose
-mongoose.connect('mongodb://localhost:27017/hyperchat', {useNewUrlParser: true, useUnifiedTopology: true}).then(function(db) {
-  console.log('Connection to MongoDB successful!');
-}).catch(function(error) {
-  console.error(`Connection error upon trying to connect to MongoDB: ${error}`);
-});
+mongoose
+  .connect("mongodb://localhost:27017/hyperchat", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(function (db) {
+    console.log("Connection to MongoDB successful!");
+  })
+  .catch(function (error) {
+    console.error(
+      `Connection error upon trying to connect to MongoDB: ${error}`
+    );
+  });
 
 // Set the shared global db that refers to the connection to the database
 global.db = mongoose.connection;
@@ -59,46 +67,63 @@ const Schema = mongoose.Schema;
 // Create a new Schema for user credentials
 const userCredentialsSchema = new Schema({
   username: String,
-  hashedPassword: String
+  hashedPassword: String,
+});
+
+// Message schema
+const messageSchema = new Schema({
+  user: String,
+  message: String,
+  special: Boolean,
+  type: String,
+  usernameColor: String,
+  badgeColor: String,
 });
 
 // Use the user credentials Schema to make a Mongoose Model as a shared global variable
-global.userCredentialsModel = mongoose.model('userCredentialsModel', userCredentialsSchema, 'credentials');
+global.userCredentialsModel = mongoose.model(
+  "userCredentialsModel",
+  userCredentialsSchema,
+  "credentials"
+);
+
+// Message model
+global.messageModel = mongoose.model("messageModel", messageSchema, "messages");
 
 // And everything starts here where a user makes a connection to the socket.io server...
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   socket.addedUser = false;
 
   // When the client emits 'login', this listens and executes
-  socket.on('login', ({ username, password, server }) => {
-    handleLogin({io, socket, username, password, server});
+  socket.on("login", ({ username, password, server }) => {
+    handleLogin({ io, socket, username, password, server });
   });
 
   // When the client emits 'new message', this listens and executes
-  socket.on('new message', (message) => {
-    handleMessage({io, socket, message});
+  socket.on("new message", (message) => {
+    handleMessage({ io, socket, message });
   });
 
   // When the client emits 'typing', we broadcast it to others
-  socket.on('typing', () => {
-    handleTyping({io, socket});
+  socket.on("typing", () => {
+    handleTyping({ io, socket });
   });
 
   // When the client emits 'stop typing', we broadcast it to others
-  socket.on('stop typing', () => {
-    handleStopTyping({io, socket});
+  socket.on("stop typing", () => {
+    handleStopTyping({ io, socket });
   });
 
   // When the client emits 'switch server', we switch their server
-  socket.on('switch server', (server) => {
-    handleSwitchServer({io, socket, server});
+  socket.on("switch server", (server) => {
+    handleSwitchServer({ io, socket, server });
   });
 
   // When the user disconnects, perform this
-  socket.on('disconnect', () => {
-    handleDisconnect({io, socket});
+  socket.on("disconnect", () => {
+    handleDisconnect({ io, socket });
   });
 });
 
 // All systems go!
-console.log('HyperChat running!');
+console.log("HyperChat running!");

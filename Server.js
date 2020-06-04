@@ -24,6 +24,8 @@ const options = {
 // Use http2 to create a secure http2 web server, handled with handleRequest(),
 // defined as webServer
 const webServer = http2.createSecureServer(options, handleRequest);
+// const webServer = http2.createServer(handleRequest); // HTTP server
+
 // Define io as socketio with our web server
 const io = socketio(webServer);
 

@@ -6,7 +6,7 @@
  * @license AGPL-3.0
  */
 
- // At the start, import the needed modules
+// At the start, import the needed modules
 import marked from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import Filter from 'bad-words';
@@ -21,9 +21,22 @@ const filter = new Filter();
 let specialUsers = [];
 
 // Put the special users with details in the special user array
-specialUsers.push({Username: 'Justsnoopy30', Type: 'Owner', UsernameColor: '#00b0f4', BadgeColor: '#7289da'},{Username: 'kmisterk', Type: 'Helper', UsernameColor: '#00b0f4', BadgeColor: '#691785'});
+specialUsers.push(
+  {
+    Username: 'Justsnoopy30',
+    Type: 'Owner',
+    UsernameColor: '#00b0f4',
+    BadgeColor: '#7289da',
+  },
+  {
+    Username: 'kmisterk',
+    Type: 'Helper',
+    UsernameColor: '#00b0f4',
+    BadgeColor: '#691785',
+  }
+);
 
-function handleMessage({io, socket, message}) {
+function handleMessage({ io, socket, message }) {
   // Stop right there if the user tries to send a null or non-string message
   if (typeof message !== 'string' || message == null) return;
   // If the muted list includes the user trying to send the message, stop right there
@@ -33,8 +46,9 @@ function handleMessage({io, socket, message}) {
   if (message.length > 2000) {
     io.in(socket.server).emit('new message', {
       username: socket.username,
-      message: 'This message was removed because it was too long (over 2000 characters).',
-      type: 'normal'
+      message:
+        'This message was removed because it was too long (over 2000 characters).',
+      type: 'normal',
     });
     return;
   }
@@ -48,23 +62,47 @@ function handleMessage({io, socket, message}) {
   const finalMessage = sanitizeHtml(messageHtml);
 
   // Perform special user checking and then send the final message to everyone in the user's server
-  const specialUser = specialUsers.find(specialUser => specialUser.Username === socket.username);
+  const specialUser = specialUsers.find(
+    (specialUser) => specialUser.Username === socket.username
+  );
   if (specialUser) {
-    io.in(socket.server).emit('new message', {
-      username: socket.username,
-      message: finalMessage,
-      special: true,
-      type: specialUser.Type,
-      usernameColor: specialUser.UsernameColor,
-      badgeColor: specialUser.BadgeColor
-    });
-  }
-  else {
-    io.in(socket.server).emit('new message', {
-      username: socket.username,
-      message: finalMessage,
-      type: 'normal'
-    });
+    messageModel.create(
+      {
+        user: socket.username,
+        message: finalMessage,
+        special: true,
+        type: specialUser.type,
+        usernameColor: specialUser.UsernameColor,
+        badgeColor: specialUser.BadgeColor,
+      },
+      (err, msg) => {
+        if (err) return;
+        io.in(socket.server).emit('new message', {
+          username: msg.user,
+          message: msg.message,
+          special: msg.special,
+          type: msg.type,
+          usernameColor: msg.usernameColor,
+          badgeColor: msg.BadgeColor,
+        });
+      }
+    );
+  } else {
+    messageModel.create(
+      {
+        user: socket.username,
+        message: finalMessage,
+        type: 'normal',
+      },
+      (err, msg) => {
+        if (err) return;
+        io.in(socket.server).emit('new message', {
+          username: msg.user,
+          message: msg.message,
+          type: msg.type,
+        });
+      }
+    );
   }
 
   // Define commandWithArgumentArray as an empty array to start
@@ -75,8 +113,7 @@ function handleMessage({io, socket, message}) {
     // Starts with the command prefix, so remove the prefix and set the commandWithArgumentArray
     // to an array with the command as the first entry, and the argument as the second entry
     commandWithArgumentArray = message.substr(1).split(/(?<=^\S+)\s/);
-  }
-  else {
+  } else {
     // The message doesn't start with the command prefix, indicating it can't be a command, so return
     return;
   }
@@ -91,7 +128,7 @@ function handleMessage({io, socket, message}) {
       username: 'HyperChat',
       message: 'The user specified in the command is not in the room.',
       special: true,
-      type: 'Server'
+      type: 'Server',
     });
     return;
   }
@@ -103,7 +140,7 @@ function handleMessage({io, socket, message}) {
       username: 'HyperChat',
       message: 'Access Denied.',
       special: true,
-      type: 'Server'
+      type: 'Server',
     });
     return;
   }
@@ -115,7 +152,7 @@ function handleMessage({io, socket, message}) {
       username: 'HyperChat',
       message: 'Invalid command.',
       special: true,
-      type: 'Server'
+      type: 'Server',
     });
     return;
   }
@@ -236,5 +273,5 @@ function handleMessage({io, socket, message}) {
   }
 }
 
- // Export the handleMessage function as the default export
- export default handleMessage;
+// Export the handleMessage function as the default export
+export default handleMessage;
